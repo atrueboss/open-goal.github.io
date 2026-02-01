@@ -63,7 +63,7 @@ If you want your texture pack to be installable via the Launcher, there are some
 
 2. If you want your texture pack to have a nice thumbnail in the launcher, you should add a top level `cover.png` image as shown above.
 
-3. Lastly, if you want your texture pack to have associated metadata (such as a description and author name) you should add a top level `metdata.json` file that abides by the following format - https://github.com/open-goal/mod-bundling-tools/blob/main/schemas/texture-packs/v1/texture-pack-schema.v1.json
+3. Lastly, if you want your texture pack to have associated metadata (such as a description and author name) you should add a top level `metdata.json` file that abides by the following format - https://github.com/open-goal/launcher/blob/main/schemas/texture-packs/v1/texture-pack-schema.v1.json
    - If you aren't familiar with JSON schema, here is an example (which may become out of date in terms of newly supported fields)
 
 ```json
