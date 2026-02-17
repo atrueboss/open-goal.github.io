@@ -40,20 +40,28 @@ Go to the `.gd` file for your custom level and add the following:
 *(make sure they are in this order, otherwise level will crash or there will be other
 problems like stuff not loading properly. it's good practice to put the file with the init
 function last)
-`"ctywide-obs.o"` causes a crash when you boot due to a hack `(ctywide-entity-hack)`
-that is called inside of the function that spawns the burning bush (init).
+`"ctywide-obs.o"` causes a crash when you include it because there is a function `(ctywide-entity-hack)` in the init (spawn function) for the burning-bush actor. so let's fix this by adding code that only calls that hack function when the `ctywide` level is loaded, that way we don't crash our custom level but it remains functional for vanilla haven city stuff.
 So go to `(defmethod init-from-entity! ((this burning-bush) (arg0 entity-actor))` in
-`ctywide-obs.gc` and scroll down a few lines and add ;; infront of `(ctywide-entityhack)` to comment it out.
+`ctywide-obs.gc` and scroll down a few lines and we will replace `(ctywide-entity-hack)` with:
+```opengoal
+  (cond 
+    ((= (level-status *level* 'ctywide) 'active) ;; runs only if ctywide loaded 
+     (ctywide-entity-hack)
+    )
+  )
+```
 After doing that you can save and compile again. The crash should be fixed, and you
 will see your burning bush actor spawned in the custom level.
 
 ![](./img/custom_side_missions_complete_with_tasks/spawned_bush.png) 
 
-## Step 2: Create Custom `task-actor` `enum` and Assign to `burning-bush`
+*note: the burning-bush particle effect texture won't appear correctly unless 1) You load the correct tpages, which is not currently possible in Jak 2. That functionality hasn't been added to the .jsonc files yet. or 2) The level `ctywide` is loaded (because it contains the tpages)
 
-For this we simply need to add `enum` entries for our new custom `"task-actor"` in `all-types.gc` and `task-control-h.gc.`
-In both files, find `(defenum game-task-actor` and add an entry at the bottom of the current list with the next number as your new entry (it can be any unused number). 
-For example, if `(whack-a-metal-hiphog 67)` is the last in the list, create the entries like this: `(burning-bush-testzone-get-to 68)` Do this in both files. 
+## Step 2: Create Custom `task-actor` and Assign to `burning-bush`
+
+For this we simply need to add `enum` entries for our new custom `"task-actor"`.
+In `task-control-h.gc.`, find `(defenum game-task-actor` and add an entry at the bottom of the current list with the next number as your new entry (it can be any unused number). 
+For example, if `(whack-a-metal-hiphog 67)` is the last in the list, create the entry like this: `(burning-bush-testzone-get-to 68)` (you don't need to do this in `all-files.gc` as that's just for decompilation) 
 Finally, go back to the `.jsonc` of your custom actor and change the lump `"task-actor"` value to the one you just created `(68 in my case)` and save.
 *Note: when you compile after doing this, the `repl` will always throw an error. This is expected since we modified `enum` entries. Just reset the `repl` and compile again.
 
@@ -90,13 +98,13 @@ Save and that’s the checkpoint created. Easy.
 
 ## Step 4: Create custom task for the `burning-bush` and assign to `task-actor`
 
-Right now your `burning-bush` should spawn in your level but it is inactive and doesn't do anything. This is because the `"task-actor"` we assigned has no actual task with it. 
-First we again make `enum` entries for the new task in `all-types.gc` and `game-task-h.gc`.
-Starting with either file, find `(defenum game-task` and scroll to the bottom to add the new entry, same as before. If the last entry is `(stadium-burning-bush-race-class1-r 109)`, then create an entry like `(testzone-burning-bush-test 110)`. Don’t forget to increase the `(max 110)` accordingly. Don’t forget to do the same in the other file too.
+Right now your `burning-bush` should spawn in your level but it is inactive and doesn't do anything. This is because the `"task-actor"` we assigned has no actual task associated with it. 
+First we again make `enum` entries for the new task in `game-task-h.gc`.
+Go into the file and find `(defenum game-task` and scroll to the bottom to add the new entry, same as before. If the last entry is `(stadium-burning-bush-race-class1-r 109)`, then create an entry like `(testzone-burning-bush-test 110)`. Don’t forget to increase the `(max 110)` accordingly.
 
 Next are the game task nodes. Each task usually has introduction and resolution. 
-In the same files (`all-types.gc` and `game-task-h.gc`), find `(defenum game-task-node`
-and scroll to the bottom to add new entries. For this tutorial, I will be creating a custom “get-to” orb under time limit challenge and I am calling it “get-to” to be consistent with the rest of the game. But you can call it whatever you like so long as the names match and one is `-introduction)` and the other is `-resolution)`. So make entries like these in the `(defenum game-task-node` of both files:
+In the same file (`game-task-h.gc`), find `(defenum game-task-node`
+and scroll to the bottom to add new entries. For this tutorial, I will be creating a custom “get-to” orb under time limit challenge and I am calling it “get-to” to be consistent with the rest of the game. But you can call it whatever you like so long as the names match and one is `-introduction)` and the other is `-resolution)`. So make entries like these in the `(defenum game-task-node` like this:
 ```opengoal
   (testzone-burning-bush-get-to-introduction)
   (testzone-burning-bush-get-to-resolution)
@@ -120,6 +128,8 @@ Next let’s create the task-info. So go to `game-task.gc` and under the final t
  :kiosk-play-continue #f 
 )
 ```
+*Note that the order of the array of `game-task-node` needs to match the order of the `enum`'s that we defined earlier.
+
 Now this is created, make sure everything is correct and save, reset repl (because we edited enums) and compile for a quick sanity check. Then let's move on.
 
 Now we have created the `game-task-info`, let’s create the info for the nodes (`game-task-node-info`) too in the same file `game-task.gc`. This will contain a lot of information such as what kind of challenge it is, which index of rings/orbs/collectables to spawn, what voice line is used when talking to the burning-bush, what to do during the active task, what to do after completing, what prize to give etc… 
@@ -194,7 +204,7 @@ So you will need to create two entries here, one for the introduction node and o
  :on-close #f
 )
 ```
-For neatness, I recommend adding this below the last `game-task-node-info` entry in the list `("stadium-burning-bush-race-class1-r-resolution")`. 
+*This also needs to match the order of the `enum`'s we defined earlier, so you should add these below the last `game-task-node-info` entry in the list `("stadium-burning-bush-race-class1-r-resolution")`. 
 
 Next let’s do the same for the resolution node, this one includes more information such as task-manager-info important for controlling what happens in the task.
 Add this below the previous node for the introduction:
@@ -294,8 +304,11 @@ Add this below the previous node for the introduction:
 ```
 After adding, save and compile. 
 If you boot the game, you should be able to find your new tasks in the debug menu under `Task>[level-name]>` and also you can talk to the `burning-bush` and it will just play the voiceline that was included in the `game-task-node-info` that we just added:
+
 ![](./img/custom_side_missions_complete_with_tasks/created_task_nodes.png)
+
 ![](./img/custom_side_missions_complete_with_tasks/bush_active.png)
+
 But after talking to the burning-bush, you’ll see no mission loads, this is because we haven’t actually given it a mission info yet (this is a get-to-orb challenge, spawn the orb there and give 7 seconds to collect etc), that we will do in the final step.  
 
 ## Step 5: Assign Side Mission Info (challenge type, where to spawn stuff etc)
@@ -330,8 +343,11 @@ After that, if everything was done right the task should be working and playable
 If something doesn’t work or there’s a problem, my advice for troubleshooting is to retrace the steps.
 
 ![](./img/custom_side_missions_complete_with_tasks/active_bush.png)
+
 ![](./img/custom_side_missions_complete_with_tasks/talk_to_bush.png)
+
 ![](./img/custom_side_missions_complete_with_tasks/task_active.png)
+
 ![](./img/custom_side_missions_complete_with_tasks/doing_task.png)
 
 
