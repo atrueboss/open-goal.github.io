@@ -313,7 +313,7 @@ So first let’s find the function that stores all the info for the get-to orbs 
       :time 4000.0 ;; 12 seconds ;; time limit for challenge
       )
 ```
-The easiest way to get the coordinates is to boot your game, stand jak where you want the orb to spawn and position the camera where you want it to look at the orb, then enter `repl` and `(lt)` to connect the `repl` to the active game window, then use command `(trsq->continue-point (-> *target* root))` and the terminal will give you all the info you need. It will output “meters” values but won’t have “meters” printed, so you will need to manually input those values into your `'burning-bush-get-on-info`.
+The easiest way to get the coordinates is to boot your game, stand jak where you want the orb to spawn and position the camera where you want it to look at the orb, then enter REPL and `(lt)` to connect the REPL to the active game window, then use command `(trsq->continue-point (-> *target* root))` and the terminal will give you all the info you need. It will output the values in `meters` but won’t have "meters" printed, so you will need to manually input those values into your `'burning-bush-get-on-info`.
 ![](./img/custom_side_missions_complete_with_tasks/target_stats.png)
 
 Now the game knows it should spawn an orb with that camera and time limit, but it doesn’t know on which mission it should do so. So we need to go back to `game-task.gc` and go to the `:index` of the resolution node for your task. The index just counts through that array (list) and assigns the one based on the number we give it. If you count through all the list of `'burning-bush-get-on-info`, and this is the first new one added, then this entry should be 15. (it’s actually the 16th in the list, but indexing starts at 0)
