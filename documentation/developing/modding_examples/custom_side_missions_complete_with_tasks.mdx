@@ -57,7 +57,9 @@ For this we simply need to add `enum` entries for our new custom `"task-actor"` 
 In both files, find `(defenum game-task-actor` and add an entry at the bottom of the current list with the next number as your new entry (it can be any unused number). 
 For example, if `(whack-a-metal-hiphog 67)` is the last in the list, create the entries like this: `(burning-bush-testzone-get-to 68)` Do this in both files. 
 Finally, go back to the `.jsonc` of your custom actor and change the lump `"task-actor"` value to the one you just created `(68 in my case)` and save.
-*Note: when you compile after doing this, the `repl` will always throw an error. This is expected since we modified `enum` entries. Just reset the `repl` and compile again.
+:::note
+When you compile after doing this, the `repl` will always throw an error. This is expected since we modified `enum` entries. Just reset the `repl` and compile again.
+:::
 
 ## Step 3: Create Checkpoint/Spawn Point for the Side Mission (burning-bush)
 
